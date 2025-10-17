@@ -1,0 +1,1926 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>渔脉相承 - 渔文化创新传承数字平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        // 配置Tailwind自定义主题
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a56db', // 主色调：深海蓝
+                        secondary: '#3b82f6', // 次要色：亮蓝色
+                        accent: '#0ea5e9', // 强调色：天蓝色
+                        neutral: '#f0f9ff', // 背景色：淡蓝色
+                        dark: '#0f172a', // 深色文本
+                        light: '#f8fafc', // 浅色背景
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['"Noto Serif SC"', 'serif'],
+                    },
+                    animation: {
+                        'wave': 'wave 8s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        wave: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            }
+            .bg-gradient-sea {
+                background: linear-gradient(135deg, #1a56db 0%, #3b82f6 50%, #0ea5e9 100%);
+            }
+            .clip-wave {
+                clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+            }
+            .mask-fade-out {
+                mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+            }
+            .square-image {
+                aspect-ratio: 1/1;
+                object-fit: cover;
+            }
+            .audio-player {
+                transition: all 0.3s ease;
+            }
+            .audio-player:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            .play-button {
+                transition: all 0.2s ease;
+            }
+            .play-button:hover {
+                transform: scale(1.1);
+            }
+            .map-marker {
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            .map-marker:hover {
+                transform: scale(1.2);
+            }
+            .map-marker.active {
+                transform: scale(1.3);
+                box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.3);
+            }
+            .village-detail {
+                display: none;
+                height: 100%;
+                overflow-y: auto;
+            }
+            .village-detail.active {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+            .village-thumbnail {
+                transition: all 0.3s ease;
+            }
+            .village-thumbnail:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+            .video-container {
+                position: relative;
+                overflow: hidden;
+                cursor: pointer;
+            }
+            .video-overlay {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0, 0, 0, 0.4);
+                transition: opacity 0.3s ease;
+            }
+            .video-play-button {
+                width: 16vw;
+                height: 16vw;
+                max-width: 120px;
+                max-height: 120px;
+                background-color: rgba(26, 86, 219, 0.9);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.3s ease, background-color 0.3s ease;
+            }
+            .video-play-button:hover {
+                transform: scale(1.1);
+                background-color: rgba(26, 86, 219, 1);
+            }
+            /* 地图容器样式 */
+            .map-container {
+                overflow: hidden;
+                position: relative;
+                cursor: grab;
+                width: 100%;
+                height: 100%;
+            }
+            .map-container.grabbing {
+                cursor: grabbing;
+            }
+            .map-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                transition: transform 0.1s ease-out;
+                will-change: transform;
+                height: 100%; /* 确保内容高度与容器一致 */
+            }
+            /* 地图图片样式 */
+            .map-image {
+                display: block;
+                height: 100%; /* 图片高度与容器一致 */
+                width: auto; /* 宽度自动调整以保持比例 */
+                max-width: none;
+                max-height: none;
+            }
+            /* 产品展示相关样式 */
+            .product-item {
+                transition: all 0.5s ease;
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            .product-item.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Noto+Serif+SC:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+</head>
+<body class="bg-neutral text-dark antialiased">
+    <!-- 导航栏 -->
+    <header id="navbar" class="fixed w-full z-50 transition-all duration-300 bg-transparent">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- logo 区域 -->
+            <div class="flex items-center space-x-2">
+                <!-- 你自己的 logo，点击跳转 -->
+                <img src="https://raw.githubusercontent.com/AikeHuang/web-images/image/haidalogo.png" 
+                     alt="我的Logo" 
+                     class="h-7 w-auto cursor-pointer"
+                     onclick="window.location.href='https://www.ouc.edu.cn/'">
+                
+                <!-- 原本的锚图标（可保留或删除） -->
+                <i class="fa fa-anchor text-2xl text-white"></i>
+                
+                <!-- 文字 -->
+                <span class="text-xl font-bold text-white text-shadow">渔脉相承</span>
+            </div>
+    
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#intro" class="text-white hover:text-accent transition-colors">平台介绍</a>
+                <a href="#map" class="text-white hover:text-accent transition-colors">数字渔村地图</a>
+                <a href="#promotion" class="text-white hover:text-accent transition-colors">多方宣传</a>
+                <a href="#products" class="text-white hover:text-accent transition-colors">文创产品</a>
+                <a href="#contact" class="text-white hover:text-accent transition-colors">联系我们</a>
+            </nav>
+    
+            <!-- 移动端菜单按钮 -->
+            <button id="menuBtn" class="md:hidden text-white text-2xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+    
+        <!-- 移动端导航菜单 -->
+        <div id="mobileMenu" class="md:hidden bg-white shadow-lg absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 pointer-events-none">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-4">
+                <!-- 移动端 logo -->
+                <div class="flex items-center space-x-2 mb-4">
+                    <img src="https://raw.githubusercontent.com/AikeHuang/web-images/image/haidalogo.png" 
+                         alt="我的Logo" 
+                         class="h-7 w-auto cursor-pointer"
+                         onclick="window.location.href='https://www.ouc.edu.cn/'">
+                    <i class="fa fa-anchor text-2xl text-dark"></i>
+                    <span class="text-xl font-bold text-dark">渔脉相承</span>
+                </div>
+        
+                <!-- 菜单项 -->
+                <a href="#intro" class="text-dark hover:text-primary transition-colors py-2 border-b border-gray-100">平台介绍</a>
+                <a href="#map" class="text-dark hover:text-primary transition-colors py-2 border-b border-gray-100">数字渔村地图</a>
+                <a href="#promotion" class="text-dark hover:text-primary transition-colors py-2 border-b border-gray-100">多方宣传</a>
+                <a href="#products" class="text-dark hover:text-primary transition-colors py-2 border-b border-gray-100">文创产品</a>
+                <a href="#contact" class="text-dark hover:text-primary transition-colors py-2">联系我们</a>
+            </div>
+        </div>
+
+    </header>
+
+
+    <!-- 英雄区域 -->
+    <section class="relative h-screen bg-gradient-sea clip-wave overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://raw.githubusercontent.com/AikeHuang/web-images/image/door.jpg')] bg-cover bg-center opacity-20"></div>
+
+        <div class="container mx-auto px-4 h-full flex flex-col justify-center items-center relative z-10 text-center">
+            <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-bold text-white mb-6 leading-tight text-shadow-lg animate-float">渔脉相承</h1>
+            <p class="text-[clamp(1.2rem,3vw,1.8rem)] text-white max-w-3xl mb-10 text-shadow">
+                渔文化创新传承数字平台
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="#intro" class="bg-white text-primary hover:bg-opacity-90 px-8 py-3 rounded-full font-medium transition-all transform hover:scale-105 shadow-lg">
+                    了解更多
+                </a>
+                <a href="#map" class="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 px-8 py-3 rounded-full font-medium transition-all transform hover:scale-105">
+                    探索渔村
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 平台介绍 -->
+    <section id="intro" class="py-20 bg-neutral">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">平台介绍</h2>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+            </div>
+            
+            <div class="container mx-auto px-4 bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="md:flex">
+                    <div class="relative md:w-1/2 -ml-[16px] rounded-2xl overflow-hidden">
+                      <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/station.png' alt="海洋主题笔记本" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+                        <p class="text-lg leading-relaxed mb-6">
+                            "渔脉相承"的数字平台，以宣传方法创新和渔文化概念创新为双轮驱动，整合中国沿海地区渔村文化资源，打破公众对渔文化仅是"渔村文化、捕鱼吃饭"的刻板印象。
+                        </p>
+                        <p class="text-lg leading-relaxed mb-6">
+                            我们将渔文化提升至"海洋生态文明"、"非遗技艺智慧"、"哲学美学思想"的新高度，致力于使中国渔文化焕发新的生机与活力，成为增强文化自信，助力乡村振兴的有效载体。
+                        </p>
+                        <div class="flex flex-wrap gap-3 mt-4">
+                            <span class="bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                                <i class="fa fa-leaf mr-1"></i>海洋生态
+                            </span>
+                            <span class="bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                                <i class="fa fa-history mr-1"></i>非遗传承
+                            </span>
+                            <span class="bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                                <i class="fa fa-book mr-1"></i>文化研究
+                            </span>
+                            <span class="bg-blue-50 text-primary px-4 py-2 rounded-full text-sm font-medium">
+                                <i class="fa fa-home mr-1"></i>乡村振兴
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 数字渔村地图 -->
+    <section id="map" class="py-20 bg-gradient-to-b from-white to-neutral">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">数字渔村地图</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">探索中国沿海丰富多样的渔村文化，了解每个渔村独特的生态、生活与美学渔文化</p>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full mt-4"></div>
+            </div>
+            
+            <!-- 地图和渔村信息区域 - 始终左右分栏布局 -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-12 transition-all duration-500" id="mapContainer">
+                <div class="p-6 md:p-8">
+                    <h3 class="text-xl font-semibold mb-6">中国沿海渔村分布</h3>
+                    
+                    <!-- 左右分栏布局 - 始终显示 -->
+                    <div class="md:flex gap-6">
+                        <!-- 左侧地图 - 固定高度，支持拖动 -->
+                        <div class="md:w-1/2 relative h-[600px] bg-blue-50 rounded-xl overflow-hidden border border-gray-100">
+                            <!-- 地图容器 - 支持拖动 -->
+                            <div class="map-container">
+                                <div class="map-content">
+                                    <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/map4.png' alt="中国沿海渔村地图" id="mapImage" class="map-image">
+                                    
+                                    <!-- 渔村标记点 - 相对地图定位（使用百分比确保相对位置固定） -->
+                                    <div class="map-marker absolute" style="top: 34.3%; left: 89.75%;" data-village="dongchu">
+                                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white animate-pulse-slow">
+                                            <i class="fa fa-map-marker"></i>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-dark text-white px-3 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                            东楮岛村
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="map-marker absolute" style="top: 52.5%; left: 69.2%;" data-village="qingshan">
+                                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white animate-pulse-slow">
+                                            <i class="fa fa-map-marker"></i>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-dark text-white px-3 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                            青山村
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="map-marker absolute" style="top: 65%; left: 57.3%;" data-village="wangjiazao">
+                                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white animate-pulse-slow">
+                                            <i class="fa fa-map-marker"></i>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-dark text-white px-3 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                            王家皂村
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="map-marker absolute" style="top: 11.25%; left: 69.5%;" data-village="tuoji">
+                                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white animate-pulse-slow">
+                                            <i class="fa fa-map-marker"></i>
+                                        </div>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-dark text-white px-3 py-1 rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                            砣矶岛渔村
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 返回按钮 - 当显示详情时可见 -->
+                            <button id="backButton" class="absolute top-4 left-4 bg-white text-primary px-4 py-2 rounded-lg shadow-md hidden z-10">
+                                <i class="fa fa-arrow-left mr-2"></i>返回列表
+                            </button>
+                        </div>
+                        
+                        <!-- 右侧内容区域 - 与左侧高度一致，无留白 -->
+                        <div class="md:w-1/2 h-[600px] relative">
+                            <!-- 渔村列表视图 - 默认显示，高度与左侧一致 -->
+                            <div id="villageList" class="h-full overflow-y-auto bg-blue-50 rounded-xl p-4">
+                                <div class="space-y-4">
+                                    <!-- 渔村1缩略 -->
+                                    <div class="village-thumbnail bg-white rounded-xl overflow-hidden cursor-pointer" data-village="dongchu">
+                                        <div class="md:flex">
+                                            <div class="md:w-1/3 h-32 md:h-auto">
+                                                <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/dongchu.jpg' alt="东楮岛村风光" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="md:w-2/3 p-4">
+                                                <h4 class="text-lg font-semibold mb-1 flex items-center">
+                                                    <i class="fa fa-map-marker text-primary mr-2"></i>东楮岛村
+                                                </h4>
+                                                <p class="text-gray-600 text-sm line-clamp-3">
+                                                    威海东楮岛村坐落于荣成石岛湾北侧，始建于明万历年间，因朝鲜难民登陆后遍植楮树得名。东楮岛村的灵魂，在于其被誉为“生态民居活化石”的海草房。
+                                                </p>
+                                                <div class="mt-2 flex items-center text-sm text-primary">
+                                                    <span>查看详情</span>
+                                                    <i class="fa fa-angle-right ml-1"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 渔村2缩略 -->
+                                    <div class="village-thumbnail bg-white rounded-xl overflow-hidden cursor-pointer" data-village="qingshan">
+                                        <div class="md:flex">
+                                            <div class="md:w-1/3 h-32 md:h-auto">
+                                                <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/qingshan.jpg' alt="青山村风光" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="md:w-2/3 p-4">
+                                                <h4 class="text-lg font-semibold mb-1 flex items-center">
+                                                    <i class="fa fa-map-marker text-primary mr-2"></i>青山村
+                                                </h4>
+                                                <p class="text-gray-600 text-sm line-clamp-3">
+                                                    青山渔村坐落于崂山脚下，面朝大海，被誉为“中国沿海最美乡村”。其渔文化深受崂山道教文化和独特地理环境的影响。
+                                                </p>
+                                                <div class="mt-2 flex items-center text-sm text-primary">
+                                                    <span>查看详情</span>
+                                                    <i class="fa fa-angle-right ml-1"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 渔村3缩略 -->
+                                    <div class="village-thumbnail bg-white rounded-xl overflow-hidden cursor-pointer" data-village="wangjiazao">
+                                        <div class="md:flex">
+                                            <div class="md:w-1/3 h-32 md:h-auto">
+                                                <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/wangjiazao.jpg' alt="王家皂村风光" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="md:w-2/3 p-4">
+                                                <h4 class="text-lg font-semibold mb-1 flex items-center">
+                                                    <i class="fa fa-map-marker text-primary mr-2"></i>王家皂村
+                                                </h4>
+                                                <p class="text-gray-600 text-sm line-clamp-3">
+                                                    王家皂村位于山东省日照市山海天旅游度假区，东濒黄海、北临日照海滨国家森林公园，是一个具有悠久渔业历史的传统渔村。
+                                                </p>
+                                                <div class="mt-2 flex items-center text-sm text-primary">
+                                                    <span>查看详情</span>
+                                                    <i class="fa fa-angle-right ml-1"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 渔村4缩略 -->
+                                    <div class="village-thumbnail bg-white rounded-xl overflow-hidden cursor-pointer" data-village="tuoji">
+                                        <div class="md:flex">
+                                            <div class="md:w-1/3 h-32 md:h-auto">
+                                                <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/tuojidao.jpg' alt="砣矶岛渔村风光" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="md:w-2/3 p-4">
+                                                <h4 class="text-lg font-semibold mb-1 flex items-center">
+                                                    <i class="fa fa-map-marker text-primary mr-2"></i>砣矶岛渔村
+                                                </h4>
+                                                <p class="text-gray-600 text-sm line-clamp-3">
+                                                    砣矶岛位于渤海海峡中部，隶属山东省烟台市长岛县，陆地面积7.9平方公里，岛上分布着八个自然村落。这个没有工业污染的海岛，保持着优良的海洋生态环境，岛民世代以海洋捕捞和水产养殖为生。
+                                                </p>
+                                                <div class="mt-2 flex items-center text-sm text-primary">
+                                                    <span>查看详情</span>
+                                                    <i class="fa fa-angle-right ml-1"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 渔村详情视图 - 默认隐藏，高度与左侧一致 -->
+                            <div id="villageDetail" class="h-full bg-blue-50 rounded-xl p-4 hidden">
+                                <!-- 东楮岛村详情 -->
+                                <div id="dongchu-detail" class="village-detail">
+                                    <!-- 视频部分 - 点击播放 -->
+                                    <div class="video-container aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6">
+                                        <video id="dongchu-video" poster="https://raw.githubusercontent.com/AikeHuang/web-images/image/dongchu.jpg" class="w-full h-full object-cover">
+                                            <!-- 您将提供的视频文件 -->
+                                            <source src='https://cdn.jsdelivr.net/gh/AikeHuang/web-images@image/dongchudao.mp4' type="video/mp4">
+                                            您的浏览器不支持视频播放
+                                        </video>
+                                        <div class="video-overlay" id="dongchu-overlay">
+                                            <div class="video-play-button">
+                                                <i class="fa fa-play text-white text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 文字介绍部分 -->
+                                    <div>
+                                        <h4 class="text-2xl font-semibold mb-3 flex items-center">
+                                            <i class="fa fa-map-marker text-primary mr-2"></i>东楮岛村
+                                        </h4>
+                                        <p class="text-gray-600 mb-4">
+                                            东楮岛村一般使用地笼网捕捞螃蟹、虾、小鱼等。这种网具针对性强，对幼鱼伤害小，是一种相对可持续的捕捞方式。此外还会利用潮汐和鱼群洄游习性，设置固定网具，等待鱼群自投罗网，是一种“守株待兔”式的低能耗捕捞法。
+                                        </p>
+                                        <p class="text-gray-600 mb-4">
+                                            当地的特色水产品主要是晒海带和制作鱼干，渔民将收获的鲜海带铺在海滩或专门的场地上晾晒，制成干海带，便于储存和运输；将新鲜的鲅鱼、黄花鱼等用盐腌制后风干，制成咸鱼干，是冬季重要的储备食物。
+                                        </p>
+                                        <p class="text-gray-600 mb-6">
+                                            东楮岛村渔民画主题多围绕海草房、渔船、海浪和海带养殖场，色彩鲜艳，风格质朴，充满生活气息。关于海草房起源、海中仙山以及各种海神的渔家传说在民间广为流传。
+                                        </p>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">特色文化</h5>
+                                        <div class="flex flex-wrap gap-2 mb-6">
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">休渔履约</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">海草房</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">祭海仪式</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">地笼低碳</span>
+                                        </div>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">地理位置</h5>
+                                        <p class="text-gray-600">山东省威海市荣成市宁津街道东楮岛村</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 青山村详情 -->
+                                <div id="qingshan-detail" class="village-detail">
+                                    <!-- 视频部分 - 点击播放 -->
+                                    <div class="video-container aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6">
+                                        <video id="qingshan-video" poster="https://raw.githubusercontent.com/AikeHuang/web-images/image/qingshan.jpg" class="w-full h-full object-cover">
+                                            <!-- 您将提供的视频文件 -->
+                                            <source src='https://cdn.jsdelivr.net/gh/AikeHuang/web-images@image/qingshan.mp4' type="video/mp4">
+                                            您的浏览器不支持视频播放
+                                        </video>
+                                        <div class="video-overlay" id="qingshan-overlay">
+                                            <div class="video-play-button">
+                                                <i class="fa fa-play text-white text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 文字介绍部分 -->
+                                    <div>
+                                        <h4 class="text-2xl font-semibold mb-3 flex items-center">
+                                            <i class="fa fa-map-marker text-primary mr-2"></i>青山村
+                                        </h4>
+                                        <p class="text-gray-600 mb-4">
+                                            青山渔村严格遵循休渔期。休渔期间，渔民们转向旅游服务、茶园管理或近海垂钓。由于靠近崂山，部分渔民也会从事山货采集，形成了“靠山吃山，靠海吃海”的复合生计模式。当地采用传统生态捕捞法，利用崂山沿海独特的礁石地貌，在礁石缝隙中捕捉海螺、海胆等。现在青山渔村更注重使用合规网目，保护幼鱼。
+                                        </p>
+                                        <p class="text-gray-600 mb-4">
+                                            甜晒鱼是当地特色水产品，不同于咸鱼，甜晒鱼用盐少，在崂山特有的山海之风中快速风干，肉质紧实，味道微咸带鲜。另外还有崂山海水豆腐，用崂山泉水和海水点制的豆腐，味道独特，常与海鲜同炖。
+                                        </p>
+                                        <p class="text-gray-600 mb-6">
+                                            青山渔村的渔民除了用常见的“船眼”当作船饰，还会在船头绘制小型的太极八卦图，祈求道教神灵庇佑，驱邪避灾。当地传说多与崂山道士、八仙过海、徐福东渡等神仙传说相结合，使得青山渔村的传说更具神秘色彩和文学性。
+                                        </p>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">特色文化</h5>
+                                        <div class="flex flex-wrap gap-2 mb-6">
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">山海共生</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">渔家美食</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">祭海非遗</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">传统捕捞</span>
+                                        </div>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">地理位置</h5>
+                                        <p class="text-gray-600">青岛市崂山区王哥庄街道青山村</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 王家皂村详情 -->
+                                <div id="wangjiazao-detail" class="village-detail">
+                                    <!-- 视频部分 - 点击播放 -->
+                                    <div class="video-container aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6">
+                                        <video id="wangjiazao-video" poster="https://raw.githubusercontent.com/AikeHuang/web-images/image/wangjiazao.jpg" class="w-full h-full object-cover">
+                                            <!-- 您将提供的视频文件 -->
+                                            <source src='https://cdn.jsdelivr.net/gh/AikeHuang/web-images@image/wangjiazao.mp4' type="video/mp4">
+                                            您的浏览器不支持视频播放
+                                        </video>
+                                        <div class="video-overlay" id="wangjiazao-overlay">
+                                            <div class="video-play-button">
+                                                <i class="fa fa-play text-white text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 文字介绍部分 -->
+                                    <div>
+                                        <h4 class="text-2xl font-semibold mb-3 flex items-center">
+                                            <i class="fa fa-map-marker text-primary mr-2"></i>王家皂村
+                                        </h4>
+                                        <p class="text-gray-600 mb-4">
+                                            在捕捞技艺上，当地保留着传统的流刺网、定置网等生态捕捞法，这些方法具有选择性，能有效保护幼鱼资源。渔民们还掌握着丰富的海洋气象知识，通过观察云彩、海浪和风向变化，精准预测天气，确保出海安全。
+                                        </p>
+                                        <p class="text-gray-600 mb-4">
+                                            王家皂村的饮食文化独具特色，游客在这里可以品尝到对虾、梭子蟹、巴鱼、蛤蜊等新鲜海产。当地渔民传承着独特的水产品加工技艺，如传统的海鲜晾晒、腌制方法。
+                                        </p>
+                                        <p class="text-gray-600 mb-6">
+                                            王家皂村通过发展渔家乐旅游，将海洋美学融入游客体验中。夜晚的海滩篝火晚会，让游客在载歌载舞中感受渔家的欢乐。
+                                        </p>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">特色文化</h5>
+                                        <div class="flex flex-wrap gap-2 mb-6">
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">渔家乐</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">滨海旅游</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">民俗体验</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">篝火夜娱</span>
+                                        </div>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">地理位置</h5>
+                                        <p class="text-gray-600">山东省日照市东港区秦楼街道王家皂村</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 砣矶岛渔村详情 -->
+                                <div id="tuoji-detail" class="village-detail">
+                                    <!-- 视频部分 - 点击播放 -->
+                                    <div class="video-container aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6">
+                                        <video id="tuoji-video" poster="https://raw.githubusercontent.com/AikeHuang/web-images/image/tuojidao.jpg" class="w-full h-full object-cover">
+                                            <!-- 您将提供的视频文件 -->
+                                            <source src='https://cdn.jsdelivr.net/gh/AikeHuang/web-images@image/tuojidao.mp4' type="video/mp4">
+                                            您的浏览器不支持视频播放
+                                        </video>
+                                        <div class="video-overlay" id="tuoji-overlay">
+                                            <div class="video-play-button">
+                                                <i class="fa fa-play text-white text-2xl"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 文字介绍部分 -->
+                                    <div>
+                                        <h4 class="text-2xl font-semibold mb-3 flex items-center">
+                                            <i class="fa fa-map-marker text-primary mr-2"></i>砣矶岛渔村
+                                        </h4>
+                                        <p class="text-gray-600 mb-4">
+                                            位于山东省烟台市蓬莱区砣矶岛上，是长岛列岛中的一个传统渔村。以盛产"砣矶砚"和特色海产闻名，岛上保留了完整的渔家村落格局和传统渔业生产方式。
+                                        </p>
+                                        <p class="text-gray-600 mb-4">
+                                            砣矶砚是中国著名的砚台品种之一，历史悠久，工艺精湛，被誉为"鲁砚之光"。岛上的制砚技艺代代相传，是珍贵的非物质文化遗产。
+                                        </p>
+                                        <p class="text-gray-600 mb-6">
+                                            砣矶岛渔村远离大陆，保持了较为原始的海岛风貌和渔家文化，岛上的渔民们仍在使用传统的渔具和方法进行捕鱼，是研究中国传统渔业文化的活化石。
+                                        </p>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">特色文化</h5>
+                                        <div class="flex flex-wrap gap-2 mb-6">
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">长岛渔号</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">传统砚雕</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">潜水捕鲍</span>
+                                            <span class="bg-blue-50 text-primary px-3 py-1 rounded-full text-sm">传统渔具</span>
+                                        </div>
+                                        
+                                        <h5 class="font-semibold text-lg mb-2">地理位置</h5>
+                                        <p class="text-gray-600">山东省烟台市蓬莱区砣矶镇</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 渔村文化分类区 -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-6 md:p-8">
+                    <h3 class="text-xl font-semibold mb-6">渔村文化分类</h3>
+                    
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- 生态渔文化 -->
+                        <div class="bg-blue-50 rounded-xl p-6 transform transition-transform hover:scale-105">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa fa-globe text-primary text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium mb-3">生态渔文化</h4>
+                            <ul class="text-gray-600 space-y-2">
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>休渔制度</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>传统捕捞</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>水产养殖</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>海洋知识</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 生活渔文化 -->
+                        <div class="bg-blue-50 rounded-xl p-6 transform transition-transform hover:scale-105">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa fa-home text-primary text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium mb-3">生活渔文化</h4>
+                            <ul class="text-gray-600 space-y-2">
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>制作技艺</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>饮食风俗</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>庆典节日</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>文化象征</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 美学渔文化 -->
+                        <div class="bg-blue-50 rounded-xl p-6 transform transition-transform hover:scale-105">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                                <i class="fa fa-paint-brush text-primary text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium mb-3">美学渔文化</h4>
+                            <ul class="text-gray-600 space-y-2">
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>渔民画</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>船饰</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>渔歌</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fa fa-check-circle text-primary mr-2"></i>
+                                    <span>渔家传说</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 多方宣传模块 -->
+    <section id="promotion" class="py-20 bg-neutral">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">多方宣传</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">通过用户参与和媒体报道，让更多人了解和关注渔文化的传承与发展</p>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full mt-4"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 用户打卡模块 -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/location.png' alt="用户打卡功能展示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-4 text-white">
+                                <h4 class="font-semibold text-lg">渔村打卡活动</h4>
+                                <p class="text-sm text-white/80">记录你的渔村探索之旅</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                                <i class="fa fa-map-pin text-primary"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">用户打卡</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">
+                            渔村打卡留念，渔村游览日志
+                        </p>
+                        <a href="#" class="inline-flex items-center text-primary font-medium hover:underline">
+                            开始打卡
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 渔村投稿模块 -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/reading.png' alt="渔村投稿功能展示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-4 text-white">
+                                <h4 class="font-semibold text-lg">渔文化分享</h4>
+                                <p class="text-sm text-white/80">发布你的渔文化故事</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                                <i class="fa fa-pencil text-primary"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">渔村投稿</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">
+                            渔文化相关内容发布与交流
+                        </p>
+                        <a href="#" class="inline-flex items-center text-primary font-medium hover:underline">
+                            发布内容
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 媒体报道模块 -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/report.png' alt="媒体报道功能展示" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+                            <div class="p-4 text-white">
+                                <h4 class="font-semibold text-lg">媒体关注</h4>
+                                <p class="text-sm text-white/80">渔文化传承的新闻报道</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                                <i class="fa fa-newspaper-o text-primary"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">媒体报道</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">
+                            权威媒体新闻报道，了解最新动态
+                        </p>
+                        <a href="#" class="inline-flex items-center text-primary font-medium hover:underline">
+                            查看报道
+                            <i class="fa fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+          
+            <!-- 投稿示例 -->
+            <div class="mt-16 bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <h3 class="text-xl font-semibold mb-6">最新投稿</h3>
+                
+                <div class="space-y-6">
+
+                    <!-- 投稿1 -->
+                    <div class="border-b border-gray-100 pb-6">
+                        <div class="flex items-start">
+                            <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/yixin.jpg' alt="用户头像" class="w-12 h-12 rounded-full object-cover mr-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium">范艺馨</h4>
+                                    <span class="text-gray-400 text-sm">1小时前</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">海草房，以海草为裳、石头为骨，把渔村的百年风霜织成一幅会呼吸的乡土诗画。</p>
+                                
+                                <div class="flex items-start mb-4">
+                                    <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/room.png' alt="海草房照片" class="w-48 square-image rounded-lg mr-4">
+                                </div>
+                                
+                                <div class="flex items-center space-x-6">
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-heart-o mr-1"></i>
+                                        <span>24</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-comment-o mr-1"></i>
+                                        <span>6</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-share mr-1"></i>
+                                        <span>分享</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 投稿2 -->
+                    <div class="border-b border-gray-100 pb-6">
+                        <div class="flex items-start">
+                            <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/aike.jpg' alt="用户头像" class="w-12 h-12 rounded-full object-cover mr-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium">黄艾柯</h4>
+                                    <span class="text-gray-400 text-sm">1小时前</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">青岛渔家宴太美味啦！色香味俱全！</p>
+                                
+                                <div class="flex items-start mb-4">
+                                    <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/food.jpg' alt="青岛渔家宴照片" class="w-48 square-image rounded-lg mr-4">
+                                </div>
+                                
+                                <div class="flex items-center space-x-6">
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-heart-o mr-1"></i>
+                                        <span>36</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-comment-o mr-1"></i>
+                                        <span>5</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-share mr-1"></i>
+                                        <span>分享</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  
+                    <!-- 投稿3 -->
+                    <div class="border-b border-gray-100 pb-6">
+                        <div class="flex items-start">
+                            <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/guoruiying.jpg' alt="用户头像" class="w-12 h-12 rounded-full object-cover mr-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium">郭睿颖</h4>
+                                    <span class="text-gray-400 text-sm">2小时前</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">传统渔船建造，以木为骨、以榫为魂，把渔家的千年智慧雕成一艘艘浮动的海上方舟。</p>
+                                
+                                <div class="flex items-start mb-4">
+                                    <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/boatcreate.png' alt="渔船建造照片" class="w-48 square-image rounded-lg mr-4">
+                                </div>
+                                
+                                <div class="flex items-center space-x-6">
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-heart-o mr-1"></i>
+                                        <span>89</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-comment-o mr-1"></i>
+                                        <span>8</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-share mr-1"></i>
+                                        <span>分享</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 投稿4 -->
+                    <div class="border-b border-gray-100 pb-6">
+                        <div class="flex items-start">
+                            <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/xueyiming.jpg' alt="用户头像" class="w-12 h-12 rounded-full object-cover mr-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium">薛轶铭</h4>
+                                    <span class="text-gray-400 text-sm">8小时前</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">青山渔村以山海为幕，碧海映翠峰，仿佛一幅活着的崂山青绿画卷。</p>
+                                
+                                <div class="flex items-start mb-4">
+                                    <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/qingshanyucun.jpg' alt="渔船建造照片" class="w-48 square-image rounded-lg mr-4">
+                                </div>
+                                
+                                <div class="flex items-center space-x-6">
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-heart-o mr-1"></i>
+                                        <span>14</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-comment-o mr-1"></i>
+                                        <span>3</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-share mr-1"></i>
+                                        <span>分享</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  
+                    <!-- 投稿5 - 渔民号子音频 -->
+                    <div>
+                        <div class="flex items-start">
+                            <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/bite.jpg' alt="用户头像" class="w-12 h-12 rounded-full object-cover mr-4">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium">毕特</h4>
+                                    <span class="text-gray-400 text-sm">昨天</span>
+                                </div>
+                                <p class="text-gray-600 mb-3">分享一段渔民号子，这是我们祖辈传下来的声音，现在会唱的人已经不多了。#渔歌传承#</p>
+                                
+                                <!-- 音频播放器 -->
+                                <div class="bg-gray-100 rounded-lg p-4 mb-4 flex items-center audio-player">
+                                    <!-- 播放/暂停按钮 -->
+                                    <button id="playButton" class="play-button w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mr-4">
+                                        <i class="fa fa-play"></i>
+                                    </button>
+                                    
+                                    <!-- 音频信息 -->
+                                    <div class="flex-1">
+                                        <p class="font-medium">渔民号子 - 出海歌</p>
+                                        
+                                        <!-- 进度条 -->
+                                        <div class="mt-2 flex items-center">
+                                            <span id="currentTime" class="text-xs text-gray-500 mr-2">0:00</span>
+                                            <div class="flex-1 bg-gray-300 rounded-full h-2 relative group">
+                                                <div id="progressBar" class="bg-primary h-2 rounded-full w-0"></div>
+                                                <div id="progressHandle" class="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            </div>
+                                            <span id="duration" class="text-xs text-gray-500 ml-2">0:00</span>
+                                        </div>
+                                        
+                                        <!-- 音量控制 -->
+                                        <div class="mt-2 flex items-center">
+                                            <i class="fa fa-volume-up text-gray-500 mr-2"></i>
+                                            <div class="w-24 bg-gray-300 rounded-full h-1.5 relative group">
+                                                <div id="volumeBar" class="bg-primary h-1.5 rounded-full w-3/4"></div>
+                                                <div id="volumeHandle" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 隐藏的音频元素 -->
+                                <audio id="audioPlayer" src='https://raw.githubusercontent.com/AikeHuang/web-images/image/haozi.mp3' preload="metadata">
+                                    您的浏览器不支持音频播放
+                                </audio>
+                                
+                                <div class="flex items-center space-x-6">
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-heart-o mr-1"></i>
+                                        <span>56</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-comment-o mr-1"></i>
+                                        <span>12</span>
+                                    </button>
+                                    <button class="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                        <i class="fa fa-share mr-1"></i>
+                                        <span>分享</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 文创板块 -->
+    <section id="products" class="py-20 bg-gradient-to-b from-neutral to-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">文创产品</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">精选渔文化创意产品，让海洋元素融入日常生活</p>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full mt-4"></div>
+            </div>
+            
+            <!-- 文创产品分类 -->
+            <div class="mb-12 flex flex-wrap justify-center gap-4">
+                <button class="category-btn bg-primary text-white px-6 py-2 rounded-full text-sm font-medium" data-category="all">全部产品</button>
+                <button class="category-btn bg-white text-dark hover:bg-primary hover:text-white px-6 py-2 rounded-full text-sm font-medium transition-colors" data-category="fishing-tackle">渔文化渔具</button>
+                <button class="category-btn bg-white text-dark hover:bg-primary hover:text-white px-6 py-2 rounded-full text-sm font-medium transition-colors" data-category="clothing">渔歌服饰</button>
+                <button class="category-btn bg-white text-dark hover:bg-primary hover:text-white px-6 py-2 rounded-full text-sm font-medium transition-colors" data-category="furniture">海洋家具</button>
+            </div>
+            
+            <!-- 文创产品展示 -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6" id="productsGrid">
+                <!-- 产品1 - 渔文化渔具 -->
+                <div class="product-item visible bg-white rounded-xl shadow-md overflow-hidden group" data-category="fishing-tackle">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/book.png' alt="海洋主题笔记本" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
+                            新品
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(42)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">海洋主题笔记本套装</h3>
+                        <p class="text-gray-500 text-sm mb-3">渔文化文具系列</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥59.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 产品2 - 渔歌服饰 -->
+                <div class="product-item visible bg-white rounded-xl shadow-md overflow-hidden group" data-category="clothing">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/Tshirt.png' alt="渔歌图案T恤" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                            热销
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(128)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">渔歌图案纯棉T恤</h3>
+                        <p class="text-gray-500 text-sm mb-3">渔歌元素服饰</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥129.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 产品3 - 海洋家具 -->
+                <div class="product-item visible bg-white rounded-xl shadow-md overflow-hidden group" data-category="furniture">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/rings.png' alt="贝壳风铃" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(76)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">天然贝壳风铃</h3>
+                        <p class="text-gray-500 text-sm mb-3">海洋主题家居</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥79.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 产品4 - 海洋家具 -->
+                <div class="product-item visible bg-white rounded-xl shadow-md overflow-hidden group" data-category="furniture">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/boat.png' alt="渔船模型摆件" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(35)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">传统渔船模型摆件</h3>
+                        <p class="text-gray-500 text-sm mb-3">海洋主题家居</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥129.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品5 - 海洋家具 -->
+                <div class="product-item bg-white rounded-xl shadow-md overflow-hidden group" data-category="furniture">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/picture.jpg' alt="琉璃海浪画框" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                                <i class="fa far-star"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(24)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">海浪琉璃画</h3>
+                        <p class="text-gray-500 text-sm mb-3">海洋主题家居</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥79.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品6 - 渔歌服饰 -->
+                <div class="product-item bg-white rounded-xl shadow-md overflow-hidden group" data-category="clothing">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/xianglian.jpg' alt="贝壳项链" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(65)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">贝壳项链</h3>
+                        <p class="text-gray-500 text-sm mb-3">渔歌元素服饰</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥139.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品7 - 海洋家具 -->
+                <div class="product-item bg-white rounded-xl shadow-md overflow-hidden group" data-category="furniture">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/guizi.jpg' alt="船帆置物柜" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(54)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">船帆置物柜</h3>
+                        <p class="text-gray-500 text-sm mb-3">海洋主题家居</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥669.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品8 - 渔文化渔具 -->
+                <div class="product-item bg-white rounded-xl shadow-md overflow-hidden group" data-category="furniture">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/light.jpg' alt="珊瑚床头灯" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(25)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">珊瑚床头灯</h3>
+                        <p class="text-gray-500 text-sm mb-3">海洋主题家居</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥199.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+              <!-- 产品9 - 渔文化渔具 -->
+                <div class="product-item bg-white rounded-xl shadow-md overflow-hidden group" data-category="fishing-tackle">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src='https://raw.githubusercontent.com/AikeHuang/web-images/image/pen.png' alt="航海钢笔" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex items-center mb-2">
+                            <div class="text-yellow-400 flex">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                            <span class="text-gray-500 text-sm ml-2">(37)</span>
+                        </div>
+                        <h3 class="font-medium mb-1">航海钢笔</h3>
+                        <p class="text-gray-500 text-sm mb-3">渔文化文具系列</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-lg">¥79.00</span>
+                            <button class="bg-primary/10 hover:bg-primary hover:text-white text-primary p-2 rounded-full transition-colors">
+                                <i class="fa fa-shopping-cart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 查看更多按钮 -->
+            <div class="text-center mt-10">
+                <button id="viewMoreBtn" class="inline-block border-2 border-primary text-primary hover:bg-primary hover:text-white px-8 py-3 rounded-full font-medium transition-colors">
+                    查看更多商品
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们 -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-dark mb-4">联系我们</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">如果您对我们的项目感兴趣，或者想合作推广渔文化，请与我们联系</p>
+                <div class="w-24 h-1 bg-primary mx-auto rounded-full mt-4"></div>
+            </div>
+            
+            <div class="bg-neutral rounded-2xl shadow-xl overflow-hidden">
+                <div class="md:flex">
+                    <!-- 留言区 -->
+                    <div class="md:w-1/2 p-8 md:p-10">
+                        <h3 class="text-xl font-semibold mb-6">给我们留言</h3>
+                        <form>
+                            <div class="mb-4">
+                                <label for="name" class="block text-gray-700 mb-2">姓名</label>
+                                <input type="text" id="name" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入您的姓名">
+                            </div>
+                            <div class="mb-4">
+                                <label for="email" class="block text-gray-700 mb-2">邮箱</label>
+                                <input type="email" id="email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入您的邮箱">
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-gray-700 mb-2">留言</label>
+                                <textarea id="message" rows="5" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入您的留言内容"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                                发送留言
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- 联系方式 -->
+                    <div class="md:w-1/2 bg-primary p-8 md:p-10 text-white">
+                        <h3 class="text-xl font-semibold mb-6">联系方式</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fa fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">邮箱</h4>
+                                    <p class="text-white/80">aike.huang@foxmail.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">电话</h4>
+                                    <p class="text-white/80">010-12345678</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                    <i class="fa fa-map-marker"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">地址</h4>
+                                    <p class="text-white/80">山东省青岛市崂山区松岭路238号中国海洋大学</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 在 <head> 中引入 Font Awesome 6 -->
+                        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+                        
+                        <!-- 关注我们 -->
+                        <div class="mt-10">
+                            <h4 class="font-medium mb-4">关注我们</h4>
+                            <div class="flex space-x-4">
+                                <!-- 微信 -->
+                                <a href="#" class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fab fa-weixin fa-lg"></i>
+                                </a>
+                                <!-- 微博 -->
+                                <a href="#" class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fab fa-weibo fa-lg"></i>
+                                </a>
+                                <!-- 哔哩哔哩 -->
+                                <a href="#" class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fab fa-bilibili fa-lg"></i>
+                                </a>
+                                <!-- YouTube -->
+                                <a href="#" class="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fab fa-youtube fa-lg"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i class="fa fa-anchor text-2xl text-accent"></i>
+                        <span class="text-xl font-bold">渔脉相承</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">
+                        渔文化创新传承数字平台，致力于传播和弘扬中国传统渔文化，助力海洋生态文明建设。
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium mb-4">快速链接</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#intro" class="text-gray-400 hover:text-white transition-colors">平台介绍</a></li>
+                        <li><a href="#map" class="text-gray-400 hover:text-white transition-colors">数字渔村地图</a></li>
+                        <li><a href="#promotion" class="text-gray-400 hover:text-white transition-colors">多方宣传</a></li>
+                        <li><a href="#products" class="text-gray-400 hover:text-white transition-colors">文创产品</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition-colors">联系我们</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium mb-4">相关资源</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">渔文化研究</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">非遗保护</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">海洋生态保护</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">乡村振兴</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">渔民故事</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-medium mb-4">订阅通讯</h4>
+                    <p class="text-gray-400 mb-4">订阅我们的通讯，获取最新渔文化资讯</p>
+                    <form class="flex">
+                        <input type="email" placeholder="您的邮箱地址" class="px-4 py-2 rounded-l-lg w-full focus:outline-none text-dark">
+                        <button type="submit" class="bg-primary hover:bg-primary/90 px-4 py-2 rounded-r-lg transition-colors">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm mb-4 md:mb-0">
+                    © 2025 渔脉相承 - 渔文化创新传承数字平台. 保留所有权利.
+                </p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">隐私政策</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">使用条款</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition-colors">网站地图</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-8 right-8 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-primary/90">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 100) {
+                navbar.classList.add('bg-primary', 'shadow-md');
+                navbar.classList.remove('bg-transparent');
+                
+                backToTop.classList.remove('opacity-0', 'invisible');
+                backToTop.classList.add('opacity-100', 'visible');
+            } else {
+                navbar.classList.remove('bg-primary', 'shadow-md');
+                navbar.classList.add('bg-transparent');
+                
+                backToTop.classList.add('opacity-0', 'invisible');
+                backToTop.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        // 移动端菜单
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        let menuOpen = false;
+        
+        menuBtn.addEventListener('click', function() {
+            if (menuOpen) {
+                mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                menuBtn.innerHTML = '<i class="fa fa-bars"></i>';
+            } else {
+                mobileMenu.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                menuBtn.innerHTML = '<i class="fa fa-times"></i>';
+            }
+            menuOpen = !menuOpen;
+        });
+        
+        // 关闭移动菜单当点击链接时
+        const mobileLinks = mobileMenu.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileMenu.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
+                menuBtn.innerHTML = '<i class="fa fa-bars"></i>';
+                menuOpen = false;
+            });
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 返回顶部
+        backToTop.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 地图功能 - 仅左右拖动版本
+        document.addEventListener('DOMContentLoaded', function() {
+            const mapContainer = document.querySelector('.map-container');
+            const mapContent = document.querySelector('.map-content');
+            const mapImage = document.getElementById('mapImage');
+            
+            let isDragging = false;
+            let startX;
+            let translateX = 0, currentTranslateX = 0;
+            
+            // 确保地图图片加载完成后再进行处理
+            mapImage.onload = function() {
+                adjustMapSize();
+            };
+            
+            // 如果图片已经缓存，手动触发加载完成事件
+            if (mapImage.complete) {
+                adjustMapSize();
+            }
+            
+            // 调整地图大小以填满容器高度，宽度自动调整
+            function adjustMapSize() {
+                if (!mapContainer || !mapImage) return;
+                
+                const containerHeight = mapContainer.offsetHeight;
+                const imageHeight = mapImage.naturalHeight;
+                
+                // 计算缩放比例，使图片高度与容器高度一致
+                const scaleRatio = containerHeight / imageHeight;
+                
+                // 应用缩放
+                mapImage.style.height = '100%'; // 高度与容器一致
+                mapImage.style.width = 'auto';  // 宽度自动调整以保持比例
+                
+                // 重置地图位置到中心
+                resetMapPosition();
+            }
+            
+            // 重置地图位置到中心
+            function resetMapPosition() {
+                if (!mapContainer || !mapContent || !mapImage) return;
+                
+                const containerWidth = mapContainer.offsetWidth;
+                const imageWidth = mapImage.offsetWidth;
+                
+                // 计算居中位置（只在水平方向）
+                translateX = Math.max(0, (imageWidth - containerWidth) / 2);
+                currentTranslateX = translateX;
+                
+                // 应用位置
+                updateMapPosition();
+            }
+            
+            // 更新地图位置（只在水平方向）
+            function updateMapPosition() {
+                mapContent.style.transform = `translate(-${translateX}px, 0)`;
+            }
+            
+            // 鼠标按下事件 - 开始拖动
+            mapContainer.addEventListener('mousedown', function(e) {
+                // 只在左键点击时触发
+                if (e.button !== 0) return;
+                
+                isDragging = true;
+                mapContainer.classList.add('grabbing');
+                
+                // 获取初始鼠标X位置（只关注水平方向）
+                startX = e.clientX;
+                
+                // 防止拖动时选中文本
+                mapContent.style.userSelect = 'none';
+            });
+            
+            // 鼠标移动事件 - 进行拖动（只在水平方向）
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                // 只计算水平方向的移动距离
+                const deltaX = startX - e.clientX;
+                
+                translateX = currentTranslateX + deltaX;
+                
+                // 限制拖动范围，防止拖出太多空白区域（只限制水平方向）
+                const maxTranslateX = Math.max(0, mapImage.offsetWidth - mapContainer.offsetWidth);
+                
+                translateX = Math.max(0, Math.min(translateX, maxTranslateX));
+                
+                // 应用移动
+                updateMapPosition();
+            });
+            
+            // 鼠标释放事件 - 结束拖动
+            document.addEventListener('mouseup', function(e) {
+                // 只在左键释放时触发
+                if (e.button !== 0) return;
+                
+                if (isDragging) {
+                    isDragging = false;
+                    mapContainer.classList.remove('grabbing');
+                    currentTranslateX = translateX;
+                    
+                    // 恢复文本选择
+                    mapContent.style.userSelect = '';
+                }
+            });
+            
+            // 鼠标离开容器事件 - 结束拖动
+            mapContainer.addEventListener('mouseleave', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    mapContainer.classList.remove('grabbing');
+                    currentTranslateX = translateX;
+                    
+                    // 恢复文本选择
+                    mapContent.style.userSelect = '';
+                }
+            });
+            
+            // 窗口大小改变时重新调整地图
+            window.addEventListener('resize', function() {
+                adjustMapSize();
+            });
+            
+            // 渔村地图交互功能
+            const villageList = document.getElementById('villageList');
+            const villageDetail = document.getElementById('villageDetail');
+            const backButton = document.getElementById('backButton');
+            const mapMarkers = document.querySelectorAll('.map-marker');
+            const villageThumbnails = document.querySelectorAll('.village-thumbnail');
+            const villageDetails = document.querySelectorAll('.village-detail');
+            
+            // 显示指定渔村的详情
+            function showVillageDetail(village) {
+                // 先暂停所有视频
+                pauseAllVideos();
+                
+                // 隐藏所有详情
+                villageDetails.forEach(detail => {
+                    detail.classList.remove('active');
+                });
+                
+                // 移除所有标记的选中状态
+                mapMarkers.forEach(m => {
+                    m.classList.remove('active');
+                });
+                
+                // 获取当前要显示的详情元素
+                const currentDetail = document.getElementById(`${village}-detail`);
+                
+                // 激活当前标记和对应详情
+                document.querySelector(`.map-marker[data-village="${village}"]`).classList.add('active');
+                currentDetail.classList.add('active');
+                
+                // 确保详情从顶部开始显示
+                currentDetail.scrollTop = 0;
+                
+                // 切换视图
+                villageList.classList.add('hidden');
+                villageDetail.classList.remove('hidden');
+                backButton.classList.remove('hidden');
+            }
+            
+            // 暂停所有视频并显示封面
+            function pauseAllVideos() {
+                const videos = document.querySelectorAll('video');
+                videos.forEach(video => {
+                    video.pause();
+                    const village = video.id.replace('-video', '');
+                    document.getElementById(`${village}-overlay`).style.display = 'flex';
+                });
+            }
+            
+            // 点击标记点显示详情
+            mapMarkers.forEach(marker => {
+                marker.addEventListener('click', function(e) {
+                    // 防止点击标记点时触发地图拖动
+                    e.stopPropagation();
+                    const village = this.getAttribute('data-village');
+                    showVillageDetail(village);
+                });
+            });
+            
+            // 点击缩略卡片显示详情
+            villageThumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', function() {
+                    const village = this.getAttribute('data-village');
+                    showVillageDetail(village);
+                });
+            });
+            
+            // 返回列表视图
+            backButton.addEventListener('click', function() {
+                // 暂停所有视频
+                pauseAllVideos();
+                
+                villageDetail.classList.add('hidden');
+                villageList.classList.remove('hidden');
+                backButton.classList.add('hidden');
+                
+                // 移除所有标记的选中状态
+                mapMarkers.forEach(m => {
+                    m.classList.remove('active');
+                });
+            });
+            
+            // 视频播放功能
+            const villages = ['dongchu', 'qingshan', 'wangjiazao', 'tuoji'];
+            villages.forEach(village => {
+                const video = document.getElementById(`${village}-video`);
+                const overlay = document.getElementById(`${village}-overlay`);
+                
+                // 点击视频区域播放/暂停
+                video.parentElement.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 防止点击视频时触发地图拖动
+                    if (video.paused) {
+                        video.play();
+                        overlay.style.display = 'none';
+                    } else {
+                        video.pause();
+                        overlay.style.display = 'flex';
+                    }
+                });
+                
+                // 视频结束时显示播放按钮
+                video.addEventListener('ended', function() {
+                    overlay.style.display = 'flex';
+                });
+            });
+        });
+        
+        // 音频播放器功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playButton = document.getElementById('playButton');
+            const progressBar = document.getElementById('progressBar');
+            const progressHandle = document.getElementById('progressHandle');
+            const currentTimeDisplay = document.getElementById('currentTime');
+            const durationDisplay = document.getElementById('duration');
+            const volumeBar = document.getElementById('volumeBar');
+            const volumeHandle = document.getElementById('volumeHandle');
+            
+            // 播放/暂停功能
+            playButton.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playButton.innerHTML = '<i class="fa fa-pause"></i>';
+                } else {
+                    audioPlayer.pause();
+                    playButton.innerHTML = '<i class="fa fa-play"></i>';
+                }
+            });
+            
+            // 更新进度条
+            audioPlayer.addEventListener('timeupdate', function() {
+                const percentage = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressBar.style.width = percentage + '%';
+                progressHandle.style.left = percentage + '%';
+                
+                // 更新当前时间显示
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            });
+            
+            // 音频加载完成后显示总时长
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                durationDisplay.textContent = formatTime(audioPlayer.duration);
+            });
+            
+            // 点击进度条跳转播放位置
+            progressBar.parentElement.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                audioPlayer.currentTime = pos * audioPlayer.duration;
+            });
+            
+            // 音量控制
+            volumeBar.parentElement.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const volume = (e.clientX - rect.left) / rect.width;
+                audioPlayer.volume = volume;
+                volumeBar.style.width = (volume * 100) + '%';
+                volumeHandle.style.left = (volume * 100) + '%';
+            });
+            
+            // 格式化时间（将秒转换为分:秒格式）
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return minutes + ':' + (secs < 10 ? '0' + secs : secs);
+            }
+            
+            // 音频播放结束时重置按钮状态
+            audioPlayer.addEventListener('ended', function() {
+                playButton.innerHTML = '<i class="fa fa-play"></i>';
+            });
+        });
+        
+        // 文创产品展示功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewMoreBtn = document.getElementById('viewMoreBtn');
+            const productItems = document.querySelectorAll('.product-item');
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            let allProductsVisible = false;
+            let currentCategory = 'all'; // 默认显示所有产品
+            
+            // 为每个产品添加数据属性以标识类别
+            // 已在HTML中添加了data-category属性
+            
+            // 初始只显示前4个产品
+            updateProductDisplay();
+            
+            // 查看更多按钮点击事件
+            viewMoreBtn.addEventListener('click', function() {
+                allProductsVisible = !allProductsVisible;
+                updateProductDisplay();
+            });
+            
+            // 分类按钮点击事件
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 更新按钮样式
+                    categoryBtns.forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                        b.classList.add('bg-white', 'text-dark', 'hover:bg-primary', 'hover:text-white');
+                    });
+                    this.classList.remove('bg-white', 'text-dark', 'hover:bg-primary', 'hover:text-white');
+                    this.classList.add('bg-primary', 'text-white');
+                    
+                    // 更新当前分类并重新显示产品
+                    currentCategory = this.getAttribute('data-category');
+                    allProductsVisible = false; // 重置为只显示部分产品
+                    updateProductDisplay();
+                });
+            });
+            
+            // 更新产品显示
+            function updateProductDisplay() {
+                // 筛选当前分类的产品
+                const filteredProducts = currentCategory === 'all' 
+                    ? Array.from(productItems)
+                    : Array.from(productItems).filter(item => item.getAttribute('data-category') === currentCategory);
+                
+                // 隐藏所有产品
+                productItems.forEach(item => {
+                    item.classList.remove('visible');
+                    item.style.display = 'none';
+                });
+                
+                // 确定要显示的产品数量
+                const displayCount = allProductsVisible ? filteredProducts.length : Math.min(4, filteredProducts.length);
+                
+                // 显示符合条件的产品
+                for (let i = 0; i < displayCount; i++) {
+                    filteredProducts[i].style.display = 'block';
+                    // 延迟添加visible类以触发动画
+                    setTimeout(() => {
+                        filteredProducts[i].classList.add('visible');
+                    }, 50 * i);
+                }
+                
+                // 更新按钮文本
+                viewMoreBtn.textContent = allProductsVisible ? '收起商品' : '查看更多商品';
+                
+                // 如果当前分类下的产品数量小于等于4，则隐藏"查看更多"按钮
+                viewMoreBtn.style.display = filteredProducts.length <= 4 ? 'none' : 'inline-block';
+            }
+        });
+    </script>
+</body>
+</html>
+    
